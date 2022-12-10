@@ -1,1 +1,1 @@
-# goproject-tmpl
+# argocd-types
