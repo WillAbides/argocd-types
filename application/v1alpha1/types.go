@@ -3,6 +3,9 @@
 package v1alpha1
 
 import (
+	"encoding/json"
+
+	"github.com/ghodss/yaml"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -883,6 +886,29 @@ type ResourceOverride struct {
 	KnownTypeFields   []KnownTypeField   `protobuf:"bytes,4,opt,name=knownTypeFields"`
 }
 
+// TODO: describe this method
+func (s *ResourceOverride) UnmarshalJSON(data []byte) error {
+	raw := &rawResourceOverride{}
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+	s.KnownTypeFields = raw.KnownTypeFields
+	s.HealthLua = raw.HealthLua
+	s.UseOpenLibs = raw.UseOpenLibs
+	s.Actions = raw.Actions
+	return yaml.Unmarshal([]byte(raw.IgnoreDifferences), &s.IgnoreDifferences)
+}
+
+// TODO: describe this method
+func (s ResourceOverride) MarshalJSON() ([]byte, error) {
+	ignoreDifferencesData, err := yaml.Marshal(s.IgnoreDifferences)
+	if err != nil {
+		return nil, err
+	}
+	raw := &rawResourceOverride{s.HealthLua, s.UseOpenLibs, s.Actions, string(ignoreDifferencesData), s.KnownTypeFields}
+	return json.Marshal(raw)
+}
+
 // TODO: describe this type
 // TODO: describe members of this type
 type ResourceActions struct {
@@ -1034,4 +1060,15 @@ type KustomizeOptions struct {
 	BuildOptions string `protobuf:"bytes,1,opt,name=buildOptions"`
 	// BinaryPath holds optional path to kustomize binary
 	BinaryPath string `protobuf:"bytes,2,opt,name=binaryPath"`
+}
+
+// MarshalJSON marshals an application destination to JSON format
+func (d *ApplicationDestination) MarshalJSON() ([]byte, error) {
+	type Alias ApplicationDestination
+	dest := d
+	if d.isServerInferred {
+		dest = dest.DeepCopy()
+		dest.Server = ""
+	}
+	return json.Marshal(&struct{ *Alias }{Alias: (*Alias)(dest)})
 }

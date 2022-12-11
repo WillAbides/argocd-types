@@ -22,6 +22,22 @@ var replacements = map[string]string{
 	"watch.EventType":           "string",
 }
 
+var allowedFuncs = []string{
+	"MarshalJSON",
+	"UnmarshalJSON",
+	"DeepCopy",
+	"DeepCopyInto",
+}
+
+func isAllowedFunc(name string) bool {
+	for _, f := range allowedFuncs {
+		if f == name {
+			return true
+		}
+	}
+	return false
+}
+
 func generate(packageName, inputFile string) (string, error) {
 	fset := token.NewFileSet()
 	f, err := parser.ParseFile(fset, inputFile, nil, parser.ParseComments)
@@ -32,13 +48,11 @@ func generate(packageName, inputFile string) (string, error) {
 
 	// Iterate over the declarations in the input file
 	for _, decl := range prependPackageDecl(packageName, f.Decls) {
-		// Skip function declarations except for MarshalJSON and UnmarshalJSON
+		// Skip function declarations except for allowedFuncs
 		if fnDecl, ok := decl.(*ast.FuncDecl); ok {
-			_ = fnDecl
-			if fnDecl.Name.Name != "MarshalJSON" && fnDecl.Name.Name != "UnmarshalJSON" {
+			if !isAllowedFunc(fnDecl.Name.Name) {
 				continue
 			}
-			continue
 		}
 
 		// Skip var declarations
