@@ -7,7 +7,6 @@ import (
 	"go/parser"
 	"go/printer"
 	"go/token"
-	"io"
 	"os"
 	"strings"
 )
@@ -39,15 +38,23 @@ func isAllowedFunc(name string) bool {
 }
 
 func generate(packageName, inputFile string) (string, error) {
-	fset := token.NewFileSet()
-	f, err := parser.ParseFile(fset, inputFile, nil, parser.ParseComments)
+	fileSet := token.NewFileSet()
+	file, err := parser.ParseFile(fileSet, inputFile, nil, parser.ParseComments)
 	if err != nil {
 		return "", err
 	}
-	var writer bytes.Buffer
+	writer := bytes.NewBuffer(nil)
+	writeString := func(s string) {
+		_, err := writer.WriteString(s)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	decls := prependPackageDecl(packageName, file.Decls)
 
 	// Iterate over the declarations in the input file
-	for _, decl := range prependPackageDecl(packageName, f.Decls) {
+	for _, decl := range decls {
 		// Skip function declarations except for allowedFuncs
 		if fnDecl, ok := decl.(*ast.FuncDecl); ok {
 			if !isAllowedFunc(fnDecl.Name.Name) {
@@ -63,27 +70,22 @@ func generate(packageName, inputFile string) (string, error) {
 		}
 
 		// Print any comments associated with the declaration
-		for _, c := range f.Comments {
+		for _, c := range file.Comments {
 			if c.Pos() == decl.Pos() {
 				// Print each comment in the CommentGroup individually
 				for _, cmt := range c.List {
-					_, err = writer.WriteString(cmt.Text)
-					if err != nil {
-						return "", err
-					}
-					mustWriteNewline(&writer)
+					writeString(cmt.Text + "\n")
 				}
 			}
 		}
-
-		mustWriteNewline(&writer)
+		writeString("\n")
 
 		// Print the declaration to the output file
-		err = printer.Fprint(&writer, fset, decl)
+		err = printer.Fprint(writer, fileSet, decl)
 		if err != nil {
 			return "", err
 		}
-		mustWriteNewline(&writer)
+		writeString("\n")
 	}
 	val := writer.String()
 	for k, v := range replacements {
@@ -104,13 +106,6 @@ func prependPackageDecl(packageName string, decls []ast.Decl) []ast.Decl {
 		},
 	}
 	return append([]ast.Decl{packageDecl}, decls...)
-}
-
-func mustWriteNewline(writer io.Writer) {
-	_, err := writer.Write([]byte{'\n'})
-	if err != nil {
-		panic(err)
-	}
 }
 
 func main() {
