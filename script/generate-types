@@ -32,7 +32,7 @@ TAG_DIR="$PWD/.tmp/argocd/workspace/$TAG"
 git -C "$TAG_DIR" checkout "$TAG" 2>/dev/null
 
 INPUT_DIR="$TAG_DIR/pkg/apis/application"
-OUTPUT_DIR="$PWD/application"
+OUTPUT_DIR="$PWD/argocd/application"
 rm -rf "$OUTPUT_DIR"
 mkdir -p "$OUTPUT_DIR"
 
