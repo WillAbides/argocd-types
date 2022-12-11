@@ -35,7 +35,7 @@ func stringSliceContains(slice []string, s string) bool {
 	return false
 }
 
-func generate(packageName, inputFile string) (string, error) {
+func generate(inputFile string) (string, error) {
 	fileSet := token.NewFileSet()
 	file, err := parser.ParseFile(fileSet, inputFile, nil, parser.ParseComments)
 	if err != nil {
@@ -49,10 +49,8 @@ func generate(packageName, inputFile string) (string, error) {
 		}
 	}
 
-	decls := prependPackageDecl(packageName, file.Decls)
-
 	// Iterate over the declarations in the input file
-	for _, decl := range decls {
+	for _, decl := range file.Decls {
 		// Skip function declarations except for allowedFuncs
 		if fnDecl, ok := decl.(*ast.FuncDecl); ok {
 			if !stringSliceContains(allowedFuncs, fnDecl.Name.Name) {
@@ -92,30 +90,14 @@ func generate(packageName, inputFile string) (string, error) {
 	return val, nil
 }
 
-func prependPackageDecl(packageName string, decls []ast.Decl) []ast.Decl {
-	packageDecl := &ast.GenDecl{
-		Tok: token.PACKAGE,
-		Specs: []ast.Spec{
-			&ast.ValueSpec{
-				Names: []*ast.Ident{
-					ast.NewIdent(packageName),
-				},
-			},
-		},
-	}
-	return append([]ast.Decl{packageDecl}, decls...)
-}
-
 func main() {
 	// get path to input file from -input flag
 	var inputFile string
 	flag.StringVar(&inputFile, "input", "", "path to input file")
-	var packageName string
-	flag.StringVar(&packageName, "package", "", "package name")
 	flag.Parse()
 
 	// generate output file
-	got, err := generate(packageName, inputFile)
+	got, err := generate(inputFile)
 	if err != nil {
 		panic(err)
 	}
