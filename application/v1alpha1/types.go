@@ -598,10 +598,10 @@ type ResourceNetworkingInfo struct {
 
 // TODO: describe this type
 type HostResourceInfo struct {
-	ResourceName         string `json:"resourceName,omitempty" protobuf:"bytes,1,name=resourceName"`
-	RequestedByApp       int64  `json:"requestedByApp,omitempty" protobuf:"bytes,2,name=requestedByApp"`
-	RequestedByNeighbors int64  `json:"requestedByNeighbors,omitempty" protobuf:"bytes,3,name=requestedByNeighbors"`
-	Capacity             int64  `json:"capacity,omitempty" protobuf:"bytes,4,name=capacity"`
+	ResourceName         v1.ResourceName `json:"resourceName,omitempty" protobuf:"bytes,1,name=resourceName"`
+	RequestedByApp       int64           `json:"requestedByApp,omitempty" protobuf:"bytes,2,name=requestedByApp"`
+	RequestedByNeighbors int64           `json:"requestedByNeighbors,omitempty" protobuf:"bytes,3,name=requestedByNeighbors"`
+	Capacity             int64           `json:"capacity,omitempty" protobuf:"bytes,4,name=capacity"`
 }
 
 // HostInfo holds host name and resources metrics

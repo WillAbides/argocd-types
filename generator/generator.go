@@ -17,7 +17,6 @@ var replacements = map[string]string{
 	"synccommon.HookType":       "string",
 	"synccommon.OperationPhase": "string",
 	"synccommon.SyncPhase":      "string",
-	"v1.ResourceName":           "string",
 	"watch.EventType":           "string",
 }
 
@@ -28,9 +27,9 @@ var allowedFuncs = []string{
 	"DeepCopyInto",
 }
 
-func isAllowedFunc(name string) bool {
-	for _, f := range allowedFuncs {
-		if f == name {
+func stringSliceContains(slice []string, s string) bool {
+	for _, v := range slice {
+		if v == s {
 			return true
 		}
 	}
@@ -57,7 +56,7 @@ func generate(packageName, inputFile string) (string, error) {
 	for _, decl := range decls {
 		// Skip function declarations except for allowedFuncs
 		if fnDecl, ok := decl.(*ast.FuncDecl); ok {
-			if !isAllowedFunc(fnDecl.Name.Name) {
+			if !stringSliceContains(allowedFuncs, fnDecl.Name.Name) {
 				continue
 			}
 		}
