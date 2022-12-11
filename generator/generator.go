@@ -17,7 +17,6 @@ var replacements = map[string]string{
 	"synccommon.HookType":       "string",
 	"synccommon.OperationPhase": "string",
 	"synccommon.SyncPhase":      "string",
-	"watch.EventType":           "string",
 }
 
 var allowedFuncs = []string{

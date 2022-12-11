@@ -8,6 +8,7 @@ import (
 	"github.com/ghodss/yaml"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/watch"
 )
 
 // Application is a definition of Application resource.
@@ -476,7 +477,7 @@ type RevisionHistory struct {
 
 // ApplicationWatchEvent contains information about application change.
 type ApplicationWatchEvent struct {
-	Type string `json:"type" protobuf:"bytes,1,opt,name=type,casttype=k8s.io/apimachinery/pkg/string"`
+	Type watch.EventType `json:"type" protobuf:"bytes,1,opt,name=type,casttype=k8s.io/apimachinery/pkg/watch.EventType"`
 
 	// Application is:
 	//  * If Type is Added or Modified: the new state of the object.
