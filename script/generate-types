@@ -31,14 +31,14 @@ TAG_DIR="$PWD/.tmp/argocd/workspace/$TAG"
 # checkout the tag
 git -C "$TAG_DIR" checkout "$TAG" 2>/dev/null
 
-INPUT_DIR="$TAG_DIR/pkg/apis/application"
-OUTPUT_DIR="$PWD/argocd/application"
+INPUT_DIR="$TAG_DIR/pkg/apis"
+OUTPUT_DIR="$PWD/argocd-apis"
 rm -rf "$OUTPUT_DIR"
 mkdir -p "$OUTPUT_DIR"
 
 make -s bin/goimports bin/gofumpt
 
-for file in "$INPUT_DIR"/*/*.go; do
+find "$INPUT_DIR" -name '*.go' | while read -r file; do
   REL_PATH="${file#"$INPUT_DIR"/}"
   echo "$REL_PATH"
   # skip _test.go files
