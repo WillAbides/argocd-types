@@ -41,13 +41,7 @@ func generate(inputFile string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	writer := bytes.NewBuffer(nil)
-	writeString := func(s string) {
-		_, err := writer.WriteString(s)
-		if err != nil {
-			panic(err)
-		}
-	}
+	var buffer bytes.Buffer
 
 	// Iterate over the declarations in the input file
 	for _, decl := range file.Decls {
@@ -70,20 +64,20 @@ func generate(inputFile string) (string, error) {
 			if c.Pos() == decl.Pos() {
 				// Print each comment in the CommentGroup individually
 				for _, cmt := range c.List {
-					writeString(cmt.Text + "\n")
+					buffer.WriteString(cmt.Text + "\n")
 				}
 			}
 		}
-		writeString("\n")
+		buffer.WriteString("\n")
 
 		// Print the declaration to the output file
-		err = printer.Fprint(writer, fileSet, decl)
+		err = printer.Fprint(&buffer, fileSet, decl)
 		if err != nil {
 			return "", err
 		}
-		writeString("\n")
+		buffer.WriteString("\n")
 	}
-	val := writer.String()
+	val := buffer.String()
 	for k, v := range replacements {
 		val = strings.ReplaceAll(val, k, v)
 	}

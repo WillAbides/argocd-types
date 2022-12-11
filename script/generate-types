@@ -11,11 +11,11 @@ TAG="$1"
 
 CDPATH="" cd -- "$(dirname -- "$(dirname -- "$0")")"
 
-mkdir -p tmp/.argocd
+mkdir -p .tmp/argocd
 
 GITHUB_PROJECT="github.com/argoproj/argo-cd"
 
-REPO_DIR="tmp/.argocd/repo"
+REPO_DIR=".tmp/argocd/repo"
 
 # Do a bare clone of the repo
 [ -d "$REPO_DIR" ] || git clone --bare "https://${GITHUB_PROJECT}.git" "${REPO_DIR}"
@@ -23,7 +23,7 @@ REPO_DIR="tmp/.argocd/repo"
 # Fetch all
 git -C "$REPO_DIR" fetch --all 2>/dev/null
 
-TAG_DIR="$PWD/tmp/.argocd/workspace/$TAG"
+TAG_DIR="$PWD/.tmp/argocd/workspace/$TAG"
 
 # Add worktree for the tag
 [ -d "$TAG_DIR" ] || git -C "$REPO_DIR" worktree add "$TAG_DIR" "$TAG" 2>/dev/null
