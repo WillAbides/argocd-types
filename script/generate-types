@@ -36,6 +36,15 @@ OUTPUT_DIR="$PWD/argocd-apis"
 rm -rf "$OUTPUT_DIR"
 mkdir -p "$OUTPUT_DIR"
 
+cp "$TAG_DIR/LICENSE" "$OUTPUT_DIR/LICENSE"
+
+echo "This directory contains code copied from the Argo CD project at the git reference \`$TAG\`. The code is covered by
+the Argo CD license which is reproduced in the LICENSE file in this directory.
+
+The code in this directory has been modified by removing some functions and changing some types. The original code can
+be found at https://github.com/argoproj/argo-cd/tree/$TAG/pkg/apis.
+" >"$OUTPUT_DIR/README.md"
+
 make -s bin/goimports bin/gofumpt
 
 find "$INPUT_DIR" -name '*.go' | while read -r file; do
