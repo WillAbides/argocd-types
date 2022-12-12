@@ -233,6 +233,11 @@ type ApplicationDestination struct {
 
 type ResourceHealthLocation string
 
+var (
+	ResourceHealthLocationInline  ResourceHealthLocation = ""
+	ResourceHealthLocationAppTree ResourceHealthLocation = "appTree"
+)
+
 // ApplicationStatus contains status information for the application
 type ApplicationStatus struct {
 	// Resources is a list of Kubernetes resources managed by this application

@@ -12,11 +12,12 @@ import (
 )
 
 var replacements = map[string]string{
-	"health.HealthStatusCode":   "string",
-	"synccommon.ResultCode":     "string",
-	"synccommon.HookType":       "string",
-	"synccommon.OperationPhase": "string",
-	"synccommon.SyncPhase":      "string",
+	"health.HealthStatusCode":                 "string",
+	"synccommon.ResultCode":                   "string",
+	"synccommon.HookType":                     "string",
+	"synccommon.OperationPhase":               "string",
+	"synccommon.SyncPhase":                    "string",
+	"github.com/argoproj/argo-cd/v2/pkg/apis": "github.com/willabides/argocd-types/argocd-apis",
 }
 
 var allowedFuncs = []string{
@@ -24,6 +25,8 @@ var allowedFuncs = []string{
 	"UnmarshalJSON",
 	"DeepCopy",
 	"DeepCopyInto",
+	"DeepCopyObject",
+	"addKnownTypes",
 }
 
 func stringSliceContains(slice []string, s string) bool {
@@ -52,11 +55,35 @@ func generate(inputFile string) (string, error) {
 			}
 		}
 
-		// Skip var declarations
-		if _, ok := decl.(*ast.GenDecl); ok {
-			if decl.(*ast.GenDecl).Tok == token.VAR {
+		// Filter var declarations
+		if genDecl, ok := decl.(*ast.GenDecl); ok && genDecl.Tok == token.VAR {
+			var specs []ast.Spec
+			for _, spec := range genDecl.Specs {
+				valueSpec, ok := spec.(*ast.ValueSpec)
+				if !ok {
+					continue
+				}
+				// must be exported
+				if !valueSpec.Names[0].IsExported() {
+					continue
+				}
+				// must not have a value from the env package like:
+				// K8sClientConfigQPS float32 = env.ParseFloatFromEnv(EnvK8sClientQPS, 50, 0, math.MaxFloat32)
+				if len(valueSpec.Values) > 0 {
+					if callExpr, ok := valueSpec.Values[0].(*ast.CallExpr); ok {
+						if selExpr, ok := callExpr.Fun.(*ast.SelectorExpr); ok {
+							if selExpr.X.(*ast.Ident).Name == "env" {
+								continue
+							}
+						}
+					}
+				}
+				specs = append(specs, valueSpec)
+			}
+			if len(specs) == 0 {
 				continue
 			}
+			genDecl.Specs = specs
 		}
 
 		// Print any comments associated with the declaration
